@@ -10,4 +10,4 @@ bin/
 include/
 coverage.xml
 .coverage
-*.sublime-project
+*.sublime*
