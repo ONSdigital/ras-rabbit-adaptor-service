@@ -5,9 +5,7 @@ from sdc.rabbit import MessageConsumer, QueuePublisher
 import tornado.ioloop
 import tornado.web
 
-from .logger_config import logger
 from .response_processor import ResponseProcessor
-from .secrets import load_secrets
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -28,7 +26,7 @@ def main():
     app = make_app()
     app.listen(os.getenv('PORT', '8080'))
 
-    rp = ResponseProcessor()
+    rp = ResponseProcessor("ci_uploads")
     default_amqp_url = 'amqp://guest:guest@0.0.0.0:5672/%2f'
     quarantine_publisher = QueuePublisher(os.getenv('RABBIT_URL',
                                                     [default_amqp_url]),

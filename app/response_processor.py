@@ -3,8 +3,8 @@ import os
 
 import requests
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.exceptions import MaxRetryError
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.exceptions import MaxRetryError
+from urllib3.util.retry import Retry
 from sdc.rabbit.exceptions import BadMessageError, RetryableError
 from structlog import wrap_logger
 
@@ -30,7 +30,7 @@ class ResponseProcessor:
                                          expected_secrets)
         self.logger = logger or wrap_logger(logging.getLogger(__name__))
 
-    def process(self, msg):
+    def process(self, msg, tx_id=None):
         try:
             data = decrypt(msg, self.secret_store, self.key_purpose_submission)
         except DecryptionError:
@@ -47,13 +47,13 @@ class ResponseProcessor:
 
         files = {'file':
                  (filename,
-                     open(file, 'rb'),
-                     'application/octet-stream',
-                     {'Expires': '0'}),
+                  open(file, 'rb'),
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                  ),
                  }
 
         try:
-            logger.info('Posting files to ras')
+            self.logger.info('Posting files to ras')
             res = session.post(ras_ci_url,
                                files=files)
         except MaxRetryError:
@@ -64,19 +64,16 @@ class ResponseProcessor:
     def response_ok(self, res):
 
         if res.status_code == 200 or res.status_code == 201:
-            logger.info("Returned from service",
-                        response="ok",
-                        service=service)
+            self.logger.info("Returned from service",
+                             response="ok")
             return
 
         elif res.status_code == 400:
-            logger.info("Returned from service",
-                        response="client error",
-                        service=service)
+            self.logger.info("Returned from service",
+                             response="client error")
             raise BadMessageError
 
         else:
-            logger.error("Returned from service",
-                         response="service error",
-                         service=service)
+            self.logger.error("Returned from service",
+                              response="service error")
             raise RetryableError
