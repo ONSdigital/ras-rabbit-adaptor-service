@@ -1,48 +1,13 @@
-import logging
 import os
 import sys
 
-from sdc.rabbit import AsyncConsumer
-from sdc.rabbit import MessageConsumer
-from sdc.rabbit import QueuePublisher
+from sdc.rabbit import MessageConsumer, QueuePublisher
 import tornado.ioloop
 import tornado.web
 
-from response_processor import ResponseProcessor
-
-
-def logger_initial_config(service_name=None,
-                          log_level=None,
-                          logger_format=None,
-                          logger_date_format=None):
-    '''Set initial logging configurations.
-    :param service_name: Name of the service
-    :type logger: String
-    :param log_level: A string or integer corresponding to a Python logging level
-    :type log_level: String
-    :param logger_format: A string defining the format of the logs
-    :type log_level: String
-    :param logger_date_format: A string defining the format of the date/time in the logs
-    :type log_level: String
-    :rtype: None
-    '''
-    if not log_level:
-        log_level = os.getenv('LOGGING_LEVEL', 'DEBUG')
-    if not logger_format:
-        logger_format = (
-            "%(asctime)s.%(msecs)06dZ|"
-            "%(levelname)s: {}: %(message)s"
-        ).format(service_name)
-    if not logger_date_format:
-        logger_date_format = os.getenv('LOGGING_DATE_FORMAT', "%Y-%m-%dT%H:%M:%S")
-
-    logging.basicConfig(level=log_level,
-                        format=logger_format,
-                        datefmt=logger_date_format)
-
-logging.getLogger('pika').setLevel('ERROR')
-logger_initial_config()
-logger = logging.getLogger(__name__)
+from .logger_config import logger
+from .response_processor import ResponseProcessor
+from .secrets import load_secrets
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -58,33 +23,30 @@ def make_app():
 
 
 def main():
-    # Create the API service
+
+    # Set tornado to listen to healthcheck endpoint
     app = make_app()
-    app.listen('8089')
+    app.listen(os.getenv('PORT', '8080'))
 
-    async_consumer = AsyncConsumer(
-        durable_queue=True,
-        exchange=os.getenv('RABBIT_EXCHANGE', 'test'),
-        exchange_type=os.getenv('EXCHANGE_TYPE', 'topic'),
-        rabbit_queue=os.getenv('RABBIT_QUEUE', 'test'),
-        rabbit_urls=os.getenv('RABBIT_URLS', ['amqp://guest:guest@0.0.0.0:5672/%2f']),
-    )
-
+    rp = ResponseProcessor()
+    default_amqp_url = 'amqp://guest:guest@0.0.0.0:5672/%2f'
     quarantine_publisher = QueuePublisher(os.getenv('RABBIT_URL',
-                                                    ['amqp://guest:guest@0.0.0.0:5672/%2f']),
+                                                    [default_amqp_url]),
                                           os.getenv('RABBIT_QUARANTINE_QUEUE',
                                                     'QUARANTINE_TEST'),
                                           )
 
-    rp = ResponseProcessor(logger=logger)
-
     message_consumer = MessageConsumer(
-        async_consumer,
-        quarantine_publisher,
+        durable_queue=True,
+        exchange=os.getenv('RABBIT_EXCHANGE', 'test'),
+        exchange_type=os.getenv('EXCHANGE_TYPE', 'topic'),
+        rabbit_queue=os.getenv('RABBIT_QUEUE', 'test'),
+        rabbit_urls=os.getenv('RABBIT_URLS', [default_amqp_url]),
+        quarantine_publisher=quarantine_publisher,
         process=rp.process,
     )
 
-    message_consumer._consumer.run()
+    message_consumer.run()
     return 0
 
 if __name__ == "__main__":
