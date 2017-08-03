@@ -12,7 +12,7 @@ from structlog import wrap_logger
 
 
 def encrpyter(data,
-              secrets_file='encrypter_secrets.yml',
+              secrets_file='tests/encrypter_secrets.yml',
               key_purpose='submission'):
     secrets = yaml.safe_load(open(secrets_file))
     secret_store = SecretStore(secrets)
@@ -24,7 +24,7 @@ class TestMain(unittest.TestCase):
     def setUp(self):
         url = 'http://localhost:9999'
         os.environ['RAS_CI_UPLOAD_URL'] = url
-        os.environ['CI_SECRETS_FILE'] = 'secrets.yml'
+        os.environ['CI_SECRETS_FILE'] = 'tests/secrets.yml'
         self.logger = wrap_logger(logging.getLogger(__name__))
         self.response_processor = ResponseProcessor('ci_uploads',
                                                     logger=self.logger)

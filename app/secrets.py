@@ -10,6 +10,7 @@ logger = logging.getLogger(name=__name__)
 def load_secrets(key_purpose_submission, expected_secrets=[]):
     """Load secrets from a local yaml file."""
 
+    print(os.path.abspath(os.getenv('CI_SECRETS_FILE')))
     with open(os.getenv('CI_SECRETS_FILE'), 'r') as file:
         secrets = yaml.safe_load(file)
 

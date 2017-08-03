@@ -5,7 +5,7 @@ from sdc.rabbit import MessageConsumer, QueuePublisher
 import tornado.ioloop
 import tornado.web
 
-from .response_processor import ResponseProcessor
+from app.response_processor import ResponseProcessor
 
 
 class MainHandler(tornado.web.RequestHandler):
