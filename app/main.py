@@ -47,6 +47,7 @@ def main():
     message_consumer.run()
     return 0
 
+
 if __name__ == "__main__":
     rv = main()
     sys.exit(rv)

@@ -1,14 +1,15 @@
 import logging
 import os
+import io
 
 import requests
 from requests.adapters import HTTPAdapter
-from urllib3.exceptions import MaxRetryError
+from requests.exceptions import ConnectionError
 from urllib3.util.retry import Retry
 from sdc.rabbit.exceptions import BadMessageError, RetryableError
+from sdc.crypto.decrypter import decrypt as sdc_decrypt
 from structlog import wrap_logger
 
-from .decrypt import decrypt, DecryptionError
 from .secrets import load_secrets
 
 # Configure the number of retries attempted before failing call
@@ -31,24 +32,30 @@ class ResponseProcessor:
         self.logger = logger or wrap_logger(logging.getLogger(__name__))
 
     def process(self, msg, tx_id=None):
+
         try:
-            data = decrypt(msg, self.secret_store, self.key_purpose_submission)
-        except DecryptionError:
-            self.logger.error("Decryption error. Quarantining msg")
-            raise BadMessageError
-        except Exception:
-            self.logger.error("Unknown exception occurred. Quarantining message.")
+            self.logger.info("Received some data")
+            data_bytes = msg.decode('UTF8')
+            decrypted_json = sdc_decrypt(data_bytes,
+                                         self.secret_store,
+                                         self.key_purpose_submission)
+
+        except Exception as e:
+            self.logger.error("Decryption error occurred. "
+                              "Quarantining message.",
+                              e=str(e))
             raise BadMessageError
 
-        filename = data.get('filename')
-        file = data.get('file')
+        filename = decrypted_json.get('filename')
+        file = decrypted_json.get('file')
 
         ras_ci_url = os.getenv('RAS_CI_UPLOAD_URL')
 
         files = {'file':
                  (filename,
-                  open(file, 'rb'),
-                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                  io.StringIO(file),
+                  'application/vnd.'
+                  'openxmlformats-officedocument.spreadsheetml.sheet',
                   ),
                  }
 
@@ -56,9 +63,11 @@ class ResponseProcessor:
             self.logger.info('Posting files to ras')
             res = session.post(ras_ci_url,
                                files=files)
-        except MaxRetryError:
-            self.logger.error("Max retries exceeded (5)",
-                              request_url=res.url)
+        except ConnectionError:
+            self.logger.error("Max retries exceeded (5)")
+
+            raise RetryableError
+
         self.response_ok(res)
 
     def response_ok(self, res):
