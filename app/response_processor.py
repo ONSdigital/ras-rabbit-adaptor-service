@@ -1,6 +1,6 @@
+from base64 import standard_b64decode
 import logging
 import os
-import io
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -35,8 +35,7 @@ class ResponseProcessor:
 
         try:
             self.logger.info("Received some data")
-            data_bytes = msg.decode('UTF8')
-            decrypted_json = sdc_decrypt(data_bytes,
+            decrypted_json = sdc_decrypt(msg,
                                          self.secret_store,
                                          self.key_purpose_submission)
 
@@ -47,21 +46,21 @@ class ResponseProcessor:
             raise BadMessageError
 
         filename = decrypted_json.get('filename')
-        file = decrypted_json.get('file')
+        file = standard_b64decode(decrypted_json.get('file').encode('UTF8'))
 
         ras_ci_url = os.getenv('RAS_CI_UPLOAD_URL')
 
         files = {'file':
                  (filename,
-                  io.StringIO(file),
-                  'application/vnd.'
+                  file,
+                  'application/vnd.' +
                   'openxmlformats-officedocument.spreadsheetml.sheet',
                   ),
                  }
 
         try:
             self.logger.info('Posting files to ras')
-            res = session.post(ras_ci_url,
+            res = session.post(ras_ci_url.format(filename),
                                files=files)
         except ConnectionError:
             self.logger.error("Max retries exceeded (5)")

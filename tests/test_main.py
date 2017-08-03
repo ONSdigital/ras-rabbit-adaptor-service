@@ -1,3 +1,4 @@
+import base64
 import logging
 import os
 import unittest
@@ -11,10 +12,20 @@ from requests.models import Response
 from structlog import wrap_logger
 
 
+def to_bytes(bytes_or_str):
+    if isinstance(bytes_or_str, str):
+        value = bytes_or_str.encode()
+    else:
+        value = bytes_or_str
+    return value
+
+
 def encrpyter(data,
               secrets_file='tests/encrypter_secrets.yml',
               key_purpose='submission'):
-    secrets = yaml.safe_load(open(secrets_file))
+    with open(secrets_file) as fp:
+        secrets = yaml.safe_load(fp)
+
     secret_store = SecretStore(secrets)
     return encrypt(data, secret_store=secret_store, key_purpose=key_purpose)
 
@@ -35,26 +46,26 @@ class TestMain(unittest.TestCase):
         self.assertEqual(self.response_processor.logger, self.logger)
 
     def test_process_unknown_exception(self):
-        bad_message = 'eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00iLCJra' \
-                      'WQiOiIyMjI1ZjAxNTgwYTk0OTgwMTI3NGE1ZjNlNjg2MTk0Nz' \
-                      'AxOGFmZjViIn0.pyyujdWprT7Dkuw2iVGgprmzGuK5Wm4JCsU' \
-                      'SpLcJyHjhc4CViW0liiN1kk4SvZn07-'
+        binary_data = b'\x00\xFF\x00\xFF'
 
         with self.assertRaises(BadMessageError):
             with self.assertLogs(level='ERROR') as cm:
-                self.response_processor.process(bad_message)
+                self.response_processor.process(binary_data)
 
         self.assertIn("Decryption error occurred. Quarantining message.",
                       cm[0][0].message)
 
     def test_process_max_retry_error(self):
+        binary_data = b'\x00\xFF\x00\xFF'
+        file = base64.standard_b64encode(binary_data).decode("ascii")
         data = {'filename': 'somefile',
-                'file': 'test',
+                'file': file,
                 }
+
         encrypted_message = encrpyter(data)
 
         with self.assertRaises(RetryableError):
-            self.response_processor.process(encrypted_message.encode('UTF8'))
+            self.response_processor.process(encrypted_message)
 
     def test_response_ok_200(self):
 
