@@ -5,7 +5,7 @@ from sdc.rabbit import MessageConsumer, QueuePublisher
 import tornado.ioloop
 import tornado.web
 
-from app.response_processor import ResponseProcessor
+from .response_processor import ResponseProcessor
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -24,7 +24,9 @@ def main():
 
     # Set tornado to listen to healthcheck endpoint
     app = make_app()
-    app.listen(os.getenv('PORT', '8080'))
+    server = tornado.httpserver.HTTPServer(app)
+    server.bind(os.getenv('PORT', '8080'))
+    server.start(0)
 
     rp = ResponseProcessor("ci_uploads")
     default_amqp_url = 'amqp://guest:guest@0.0.0.0:5672/%2f'

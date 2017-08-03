@@ -1,0 +1,6 @@
+
+---
+applications:
+- name: collection-instrument-rabbit-adapter
+  memory: 512M
+  host: collection-instrument-rabbit-adapter

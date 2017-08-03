@@ -10,7 +10,7 @@ from sdc.rabbit.exceptions import BadMessageError, RetryableError
 from sdc.crypto.decrypter import decrypt as sdc_decrypt
 from structlog import wrap_logger
 
-from app.secrets import load_secrets
+from .secrets import load_secrets
 
 # Configure the number of retries attempted before failing call
 session = requests.Session()
