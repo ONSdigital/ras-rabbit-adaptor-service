@@ -50,6 +50,12 @@ class ResponseProcessor:
 
         ras_ci_url = os.getenv('RAS_CI_UPLOAD_URL')
 
+        """This should not be hard-coded, but as the adapter is only a
+        temporary measure for BRES, is acceptable for now. Post-BRES,
+        this should be either configurable from an env var, or provided by a
+        service"""
+        ex_id = '14fb3e68-4dca-46db-bf49-04b84e07e77c'
+
         files = {'file':
                  (filename,
                   file,
@@ -59,12 +65,13 @@ class ResponseProcessor:
                  }
 
         try:
-            self.logger.info('Posting files to ras')
-            res = session.post(ras_ci_url.format(filename),
+            self.logger.info('Posting files to ras',
+                             ex_id=ex_id,
+                             filename=filename)
+            res = session.post(ras_ci_url.format(ex_id, filename),
                                files=files)
         except ConnectionError:
-            self.logger.error("Max retries exceeded (5)")
-
+            self.logger.error("Connection error")
             raise RetryableError
 
         self.response_ok(res)

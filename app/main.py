@@ -30,8 +30,8 @@ def main():
 
     rp = ResponseProcessor("ci_uploads")
     default_amqp_url = 'amqp://guest:guest@0.0.0.0:5672/%2f'
-    quarantine_publisher = QueuePublisher(os.getenv('RABBIT_URL',
-                                                    [default_amqp_url]),
+    quarantine_publisher = QueuePublisher([os.getenv('RABBIT_URL',
+                                                     default_amqp_url)],
                                           os.getenv('RABBIT_QUARANTINE_QUEUE',
                                                     'QUARANTINE_TEST'),
                                           )
@@ -41,7 +41,7 @@ def main():
         exchange=os.getenv('RABBIT_EXCHANGE', 'test'),
         exchange_type=os.getenv('EXCHANGE_TYPE', 'topic'),
         rabbit_queue=os.getenv('RABBIT_QUEUE', 'test'),
-        rabbit_urls=os.getenv('RABBIT_URLS', [default_amqp_url]),
+        rabbit_urls=[os.getenv('RABBIT_URLS', default_amqp_url)],
         quarantine_publisher=quarantine_publisher,
         process=rp.process,
     )
