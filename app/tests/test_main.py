@@ -25,7 +25,7 @@ def encrpyter(data,
               secrets_file='app/tests/encrypter_secrets.json',
               key_purpose='ci_uploads'):
     with open(secrets_file) as fp:
-        secrets = json.load(fp)
+        secrets = json.loads(fp.read())
 
     secret_store = SecretStore(secrets)
     print(secret_store.__dict__)
@@ -37,7 +37,11 @@ class TestMain(unittest.TestCase):
     def setUp(self):
         url = 'http://localhost:9999'
         os.environ['RAS_CI_UPLOAD_URL'] = url
-        os.environ['CI_SECRETS'] = 'app/tests/secrets.json'
+        with open('app/tests/secrets.json') as fp:
+            secrets = fp.read()
+
+        os.environ['CI_SECRETS'] = secrets
+        print(os.getenv('CI_SECRETS'))
         self.logger = wrap_logger(logging.getLogger(__name__))
         self.response_processor = ResponseProcessor('ci_uploads',
                                                     logger=self.logger)
