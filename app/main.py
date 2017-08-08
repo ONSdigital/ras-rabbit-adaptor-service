@@ -28,7 +28,7 @@ def main():
     server.bind(os.getenv('PORT', '8080'))
     server.start(0)
 
-    rp = ResponseProcessor("ci_uploads")
+    rp = ResponseProcessor("outbound")
     default_amqp_url = 'amqp://guest:guest@0.0.0.0:5672/%2f'
     quarantine_publisher = QueuePublisher([os.getenv('RABBIT_URL',
                                                      default_amqp_url)],
