@@ -1,8 +1,8 @@
 import base64
+import json
 import logging
 import os
 import unittest
-import yaml
 
 from sdc.crypto.encrypter import encrypt
 from sdc.crypto.secrets import SecretStore
@@ -22,12 +22,13 @@ def to_bytes(bytes_or_str):
 
 
 def encrpyter(data,
-              secrets_file='app/tests/encrypter_secrets.yml',
-              key_purpose='submission'):
+              secrets_file='app/tests/encrypter_secrets.json',
+              key_purpose='ci_uploads'):
     with open(secrets_file) as fp:
-        secrets = yaml.safe_load(fp)
+        secrets = json.load(fp)
 
     secret_store = SecretStore(secrets)
+    print(secret_store.__dict__)
     return encrypt(data, secret_store=secret_store, key_purpose=key_purpose)
 
 
@@ -36,7 +37,7 @@ class TestMain(unittest.TestCase):
     def setUp(self):
         url = 'http://localhost:9999'
         os.environ['RAS_CI_UPLOAD_URL'] = url
-        os.environ['CI_SECRETS_FILE'] = 'app/tests/secrets.yml'
+        os.environ['CI_SECRETS'] = 'app/tests/secrets.json'
         self.logger = wrap_logger(logging.getLogger(__name__))
         self.response_processor = ResponseProcessor('ci_uploads',
                                                     logger=self.logger)
