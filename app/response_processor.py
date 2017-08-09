@@ -99,7 +99,4 @@ class ResponseProcessor:
             self.logger.error("Response details",
                               response_status=res.status_code,
                               response_content=res.content)
-            """This needs to be a RetryableError in any kind of preprod
-            or prod environment. Only setting to BadMessage for debugging,
-            temporarily"""
-            raise BadMessageError
+            raise RetryableError
