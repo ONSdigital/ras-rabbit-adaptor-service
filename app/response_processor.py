@@ -56,7 +56,7 @@ class ResponseProcessor:
         service"""
         ex_id = '14fb3e68-4dca-46db-bf49-04b84e07e77c'
 
-        files = {'file':
+        files = {'files[]':
                  (filename,
                   file,
                   'application/vnd.' +
@@ -70,7 +70,7 @@ class ResponseProcessor:
                              filename=filename)
             res = session.post(ras_ci_url.format(ex_id, filename),
                                files=files)
-            logger.error("File text", text=res.text)
+            self.logger.error("File text", text=res.text)
 
         except ConnectionError:
             self.logger.error("Connection error")
