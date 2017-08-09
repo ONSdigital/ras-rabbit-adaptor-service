@@ -44,6 +44,7 @@ def main():
         rabbit_urls=[os.getenv('RABBIT_URLS', default_amqp_url)],
         quarantine_publisher=quarantine_publisher,
         process=rp.process,
+        check_tx_id=False,
     )
 
     message_consumer.run()
