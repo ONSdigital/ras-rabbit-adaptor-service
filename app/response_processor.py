@@ -86,15 +86,15 @@ class ResponseProcessor:
         elif res.status_code == 400:
             self.logger.info("Returned from service",
                              response="client error")
-            self.logger.debug("Response details",
-                              response_status=res.status_code,
-                              response_content=res.content)
+            self.logger.info("Response details",
+                             response_status=res.status_code,
+                             response_content=res.content)
             raise BadMessageError
 
         else:
             self.logger.error("Returned from service",
                               response="service error")
-            self.logger.debug("Response details",
+            self.logger.error("Response details",
                               response_status=res.status_code,
                               response_content=res.content)
             """This needs to be a RetryableError in any kind of preprod

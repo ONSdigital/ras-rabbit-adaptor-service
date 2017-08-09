@@ -5,7 +5,10 @@ from sdc.rabbit import MessageConsumer, QueuePublisher
 import tornado.ioloop
 import tornado.web
 
+from .logger_config import logger_initial_config
 from .response_processor import ResponseProcessor
+
+logger_initial_config(service_name='ras-rabbit-adapter')
 
 
 class MainHandler(tornado.web.RequestHandler):
