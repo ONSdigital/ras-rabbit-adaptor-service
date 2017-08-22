@@ -65,18 +65,19 @@ class ResponseProcessor:
                  }
 
         try:
+            url = ras_ci_url.format(ex_id, filename)
             self.logger.info('Posting files to ras',
                              ex_id=ex_id,
-                             filename=filename)
-            res = session.post(ras_ci_url.format(ex_id, filename),
-                               files=files)
-            self.logger.error("File text", text=res.text)
+                             filename=filename,
+                             url=url)
+            res = session.post(url, files=files)
+            self.logger.info("Response", text=res.text)
+
+            self.response_ok(res)
 
         except ConnectionError:
             self.logger.error("Connection error")
             raise RetryableError
-
-        self.response_ok(res)
 
     def response_ok(self, res):
 

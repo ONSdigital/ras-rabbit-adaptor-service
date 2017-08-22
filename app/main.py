@@ -19,7 +19,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 def make_app():
     return tornado.web.Application([
-        (r"/healthcheck", MainHandler),
+        (r"/info", MainHandler),
     ])
 
 
