@@ -29,7 +29,7 @@ def main():
     app = make_app()
     server = tornado.httpserver.HTTPServer(app)
     server.bind(os.getenv('PORT', '8080'))
-    server.start(0)
+    server.start(1)
 
     rp = ResponseProcessor("outbound")
     default_amqp_url = 'amqp://guest:guest@0.0.0.0:5672/%2f'
