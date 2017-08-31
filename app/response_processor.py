@@ -21,6 +21,11 @@ session.mount('https://', HTTPAdapter(max_retries=retries))
 
 class ResponseProcessor:
 
+    RAS_CI_UPLOAD_URL = os.getenv('RAS_CI_UPLOAD_URL')
+    SECURITY_USER_NAME = os.getenv('SECURITY_USER_NAME')
+    SECURITY_USER_PASSWORD = os.getenv('SECURITY_USER_PASSWORD')
+    BASIC_AUTH = (SECURITY_USER_NAME, SECURITY_USER_PASSWORD)
+
     def __init__(self,
                  key_purpose_submission,
                  expected_secrets=[],
@@ -48,8 +53,6 @@ class ResponseProcessor:
         filename = decrypted_json.get('filename')
         file = standard_b64decode(decrypted_json.get('file').encode('UTF8'))
 
-        ras_ci_url = os.getenv('RAS_CI_UPLOAD_URL')
-
         """This should not be hard-coded, but as the adapter is only a
         temporary measure for BRES, is acceptable for now. Post-BRES,
         this should be either configurable from an env var, or provided by a
@@ -65,12 +68,12 @@ class ResponseProcessor:
                  }
 
         try:
-            url = ras_ci_url.format(ex_id, filename)
+            url = self.RAS_CI_UPLOAD_URL.format(ex_id, filename)
             self.logger.info('Posting files to ras',
                              ex_id=ex_id,
                              filename=filename,
                              url=url)
-            res = session.post(url, files=files)
+            res = session.post(url, auth=self.BASIC_AUTH, files=files)
             self.logger.info("Response", text=res.text)
 
             self.response_ok(res)

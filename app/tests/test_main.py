@@ -36,7 +36,7 @@ class TestMain(unittest.TestCase):
 
     def setUp(self):
         url = 'http://localhost:9999'
-        os.environ['RAS_CI_UPLOAD_URL'] = url
+        ResponseProcessor.RAS_CI_UPLOAD_URL = url
         with open('app/tests/secrets.json') as fp:
             secrets = fp.read()
 
