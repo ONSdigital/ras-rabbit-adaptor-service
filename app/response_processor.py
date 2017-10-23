@@ -59,7 +59,7 @@ class ResponseProcessor:
         service"""
         ex_id = '14fb3e68-4dca-46db-bf49-04b84e07e77c'
 
-        files = {'files[]':
+        files = {'file':
                  (filename,
                   file,
                   'application/vnd.' +
