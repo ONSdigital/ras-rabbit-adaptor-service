@@ -1,8 +1,9 @@
 .PHONY: build test
 
 build:
-	pip3 install -r requirements.txt
+	pip3 install -U pipenv
+	pipenv install --dev
 
 test:
-	flake8 --exclude ./lib/*
-	python3 -m unittest discover
+	pipenv run flake8 --exclude ./lib/*
+	pipenv run python -m unittest discover
