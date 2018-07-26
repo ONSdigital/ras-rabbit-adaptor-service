@@ -17,7 +17,3 @@ Assuming you are executing from inside an activated virtual environment:
 ###### Run the unit tests:
 
     $ make test
-
-###### Build documentation pages:
-
-    $ make docs

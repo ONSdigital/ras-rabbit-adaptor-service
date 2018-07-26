@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-from sdc.crypto.secrets import SecretStore, validate_required_secrets
+from sdc.crypto.key_store import KeyStore
 
 logger = logging.getLogger(name=__name__)
 
@@ -15,9 +15,6 @@ def load_secrets(key_purpose_submission, expected_secrets=[]):
     secrets = json.loads(json_string)
     logger.info("Loaded keys from environment")
 
-    validate_required_secrets(secrets,
-                              expected_secrets,
-                              key_purpose_submission)
+    secrets = KeyStore(secrets)
 
-    secrets = SecretStore(secrets)
     return secrets
