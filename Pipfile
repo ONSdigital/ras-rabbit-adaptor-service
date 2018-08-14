@@ -12,11 +12,11 @@ python_version = "3.6"
 
 [packages]
 
-cryptography = "==1.9"
-PyYAML = "==3.12"
+cryptography = "==2.3"
+PyYAML = "==3.13"
 requests = "==2.18.2"
 sdc-rabbit = "==0.3.4"
-sdc-cryptography = "==0.1.6"
+sdc-cryptography = "==0.2.3"
 structlog = "==17.2.0"
 tornado = "==4.5.1"
 

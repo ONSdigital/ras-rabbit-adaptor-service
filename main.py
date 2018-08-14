@@ -5,8 +5,9 @@ from sdc.rabbit import MessageConsumer, QueuePublisher
 import tornado.ioloop
 import tornado.web
 
-from .logger_config import logger_initial_config
-from .response_processor import ResponseProcessor
+from app.logger_config import logger_initial_config
+from app.response_processor import ResponseProcessor
+from config import Config
 
 logger_initial_config(service_name='ras-rabbit-adapter')
 
@@ -32,9 +33,7 @@ def main():
     server.start(1)
 
     rp = ResponseProcessor("outbound")
-    default_amqp_url = 'amqp://guest:guest@0.0.0.0:5672/%2f'
-    quarantine_publisher = QueuePublisher([os.getenv('RABBIT_URL',
-                                                     default_amqp_url)],
+    quarantine_publisher = QueuePublisher([Config.RABBIT_URL],
                                           os.getenv('RABBIT_QUARANTINE_QUEUE',
                                                     'QUARANTINE_TEST'),
                                           )
@@ -44,7 +43,7 @@ def main():
         exchange=os.getenv('RABBIT_EXCHANGE', 'test'),
         exchange_type=os.getenv('EXCHANGE_TYPE', 'topic'),
         rabbit_queue=os.getenv('RABBIT_QUEUE', 'test'),
-        rabbit_urls=[os.getenv('RABBIT_URLS', default_amqp_url)],
+        rabbit_urls=[Config.RABBIT_URL],
         quarantine_publisher=quarantine_publisher,
         process=rp.process,
         check_tx_id=False,

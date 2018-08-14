@@ -10,6 +10,7 @@ from sdc.rabbit.exceptions import BadMessageError, RetryableError
 from requests.models import Response
 from structlog import wrap_logger
 
+from config import Config
 from ..response_processor import ResponseProcessor
 
 
@@ -21,7 +22,7 @@ def to_bytes(bytes_or_str):
     return value
 
 
-def encrpyter(data,
+def encrypter(data,
               secrets_file='app/tests/encrypter_secrets.json',
               key_purpose='ci_uploads'):
     with open(secrets_file) as fp:
@@ -36,7 +37,7 @@ class TestMain(unittest.TestCase):
 
     def setUp(self):
         url = 'http://localhost:9999'
-        ResponseProcessor.RAS_CI_UPLOAD_URL = url
+        Config.RAS_CI_UPLOAD_URL = url
         with open('app/tests/secrets.json') as fp:
             secrets = fp.read()
 
@@ -68,7 +69,7 @@ class TestMain(unittest.TestCase):
                 'file': file,
                 }
 
-        encrypted_message = encrpyter(data)
+        encrypted_message = encrypter(data)
 
         with self.assertRaises(RetryableError):
             self.response_processor.process(encrypted_message)

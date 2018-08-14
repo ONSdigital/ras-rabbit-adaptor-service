@@ -10,6 +10,7 @@ from sdc.rabbit.exceptions import BadMessageError, RetryableError
 from sdc.crypto.decrypter import decrypt as sdc_decrypt
 from structlog import wrap_logger
 
+from config import Config
 from .secrets import load_secrets
 
 # Configure the number of retries attempted before failing call
@@ -20,11 +21,6 @@ session.mount('https://', HTTPAdapter(max_retries=retries))
 
 
 class ResponseProcessor:
-
-    RAS_CI_UPLOAD_URL = os.getenv('RAS_CI_UPLOAD_URL')
-    SECURITY_USER_NAME = os.getenv('SECURITY_USER_NAME')
-    SECURITY_USER_PASSWORD = os.getenv('SECURITY_USER_PASSWORD')
-    BASIC_AUTH = (SECURITY_USER_NAME, SECURITY_USER_PASSWORD)
 
     def __init__(self,
                  key_purpose_submission,
@@ -53,11 +49,7 @@ class ResponseProcessor:
         filename = decrypted_json.get('filename')
         file = standard_b64decode(decrypted_json.get('file').encode('UTF8'))
 
-        """This should not be hard-coded, but as the adapter is only a
-        temporary measure for BRES, is acceptable for now. Post-BRES,
-        this should be either configurable from an env var, or provided by a
-        service"""
-        ex_id = '14fb3e68-4dca-46db-bf49-04b84e07e77c'
+        collex_id = os.getenv('COLLEX_ID')
 
         files = {'file':
                  (filename,
@@ -68,12 +60,12 @@ class ResponseProcessor:
                  }
 
         try:
-            url = self.RAS_CI_UPLOAD_URL.format(ex_id, filename)
+            url = Config.RAS_CI_UPLOAD_URL.format(os.getenv('HOST'), collex_id, filename)
             self.logger.info('Posting files to ras',
-                             ex_id=ex_id,
+                             ex_id=collex_id,
                              filename=filename,
                              url=url)
-            res = session.post(url, auth=self.BASIC_AUTH, files=files)
+            res = session.post(url, auth=Config.BASIC_AUTH, files=files)
             self.logger.info("Response", text=res.text)
 
             self.response_ok(res)
