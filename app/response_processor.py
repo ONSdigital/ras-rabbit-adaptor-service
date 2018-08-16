@@ -60,7 +60,9 @@ class ResponseProcessor:
                  }
 
         try:
-            url = Config.RAS_CI_UPLOAD_URL.format(os.getenv('HOST'), collex_id, filename)
+            upload_url = Config.COLLECTION_INSTRUMENT_URL + \
+                '/collection-instrument-api/1.0.2/upload/{}/{}'
+            url = upload_url.format(collex_id, filename)
             self.logger.info('Posting files to ras',
                              ex_id=collex_id,
                              filename=filename,
