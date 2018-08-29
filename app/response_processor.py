@@ -46,13 +46,14 @@ class ResponseProcessor:
                               e=str(e))
             raise BadMessageError
 
-        filename = decrypted_json.get('filename')
+        file_with_extension = decrypted_json.get('filename')
         file = standard_b64decode(decrypted_json.get('file').encode('UTF8'))
+        filename = file_with_extension.split('.')[0]
 
         collex_id = os.getenv('COLLEX_ID')
 
         files = {'file':
-                 (filename,
+                 (file_with_extension,
                   file,
                   'application/vnd.' +
                   'openxmlformats-officedocument.spreadsheetml.sheet',
@@ -65,7 +66,7 @@ class ResponseProcessor:
             url = upload_url.format(collex_id, filename)
             self.logger.info('Posting files to ras',
                              ex_id=collex_id,
-                             filename=filename,
+                             filename=file_with_extension,
                              url=url)
             res = session.post(url, auth=Config.BASIC_AUTH, files=files)
             self.logger.info("Response", text=res.text)
